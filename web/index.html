@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script>
+function noteit() {
+    var maxLength = 500;
+    var name = (document.note.speakerhandle.value) +": ";
+    document.note.composed.value = document.note.hashtag.value +" "+ name + document.note.quote.value;
+    var rawcount = document.note.composed.value.length;
+    var mungleft = maxLength-rawcount;
+    var countElement= document.getElementById("charcount");
+    var countColour = "black";
+    
+    countElement.innerHTML = mungleft;
+    if (mungleft<15) { countColour = "maroon";} 
+    if (mungleft<5) { countColour = "darkorange";} 
+    if (mungleft<0) { countColour = "red";} 
+    countElement.style.backgroundColor = countColour;
+    document.getElementById("notebutton").style.backgroundColor = countColour;
+}
+function clear_lastid(){
+    document.note.lastid.value = 0;
+    this.event.preventDefault();
+}
+function postit() {
+    document.note.archive.value = document.note.archive.value + "\n" +document.note.composed.value;
+    // speakerHTML = getSpeakerHTML();
+    // if (speakerHTML == lastSpeakerHTML) {
+    //     speakerHTML = "<p>"; // a new paragraph inside the blockquote
+    // } else {
+    //     if (lastSpeakerHTML != "") { speakerHTML = "</blockquote></div>\n" + speakerHTML; }
+    //     speakerHTML = speakerHTML + " <blockquote class='e-content'><p>";
+    //     lastSpeakerHTML = getSpeakerHTML();
+    // }            
+    // document.note.blogpost.value = document.note.blogpost.value + "\n" +speakerHTML + auto_link(document.note.quote.value, true);
+    // document.getElementById("preview").innerHTML = document.note.blogpost.value;
+    const  lastid = document.note.lastid.value;
+    // var firstlink = null;
+    // try {
+    //    firstlink = document.getElementById('tweet').contentDocument.getElementsByTagName("a")[0]
+    // } catch (except) {
+    //     console.log("no tweet iframe" + except);
+    // }
+    // if (firstlink) {lastid= firstlink.href.split('/').pop();}
+    this.event.preventDefault();
+
+    const url = '/sendtoot?status='+encodeURIComponent(document.note.composed.value)+"&lastid="+encodeURIComponent(lastid);
+    return fetch(url).then(v => v.json())
+    .then((result=>{
+        console.log (result);
+        const resp=document.getElementById("response")
+        if (resp){resp.innerHTML=result.response}
+        if (result.result) {
+            document.note.lastid.value = result.result.id
+        }
+        document.note.quote.value = "";
+        noteit();
+    }))
+    // document.getElementById("toot").src=url;
+     //fix counter and button colour
+    // storeLocal();
+}
+</script>
+<style>
+    @import "https://cdn.jsdelivr.net/gh/yegor256/tacit@gh-pages/tacit-css.min.css" layer(theme);
+    @layer overrule {
+    #charcount, #notebutton {color:white; background:black;}
+    output,textarea {    display: block;
+    width: clamp(20ch, 90vw, 80ch);
+    background: blanchedalmond;
+    min-height: 2em;}
+    #quote { clamp(20ch, 90vw, 80ch); min-height: 2rem; background-color: white;}
+    }
+</style>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Noterlive mastodon </title>
+<body>
+    <h1>NoterLive Masto</h1>
+    <form name="note">
+        <input type='text' name="hashtag" value="#indieweb">
+        <input name="speakerhandle" placeholder="speaker" type='text' >
+        <input type='text' name="lastid" value="0" >
+        <button id="newthread" name="newthread" onclick="clear_lastid()">New Thread</button>
+        <br><textarea id=quote type="text" name="quote" placeholder="type the speaker's brilliant quote here" oninput="noteit()" onchange="noteit()" 
+              onkeydown="if (event.keyCode == 13) { postit(); return false; }" ></textarea>
+              <button id="notebutton" name="submit" type="submit" onclick="postit()">toot</button>
+        <output id="composed"></output>
+        <span class='label' id="charcount">0</span>
+        
+        <output id="response" ></output>
+        <output id="preview" ></output>
+        <textarea id="archive"></textarea>
+        <textarea id="blogpost"></textarea>
+    </form>
+</body>
