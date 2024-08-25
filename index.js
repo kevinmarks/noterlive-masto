@@ -22,7 +22,7 @@ app.use(express.static(__dirname + '/web'));
 
 const masto = createRestAPIClient({
     url: 'https://indieweb.social/',
-    accessToken: '99PMuY3qO-2j8wfF3ztLZIASNFgIf-t7MrIvDQEO7pc',
+    accessToken: process.env.MASTOTOKEN,
   });
   
 //   const status = await masto.v1.statuses.create({
